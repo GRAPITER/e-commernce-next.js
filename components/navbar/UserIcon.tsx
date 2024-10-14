@@ -9,7 +9,11 @@ export default async function UserIcon() {
 
   if (userProfile) {
     return (
-      <img src={userProfile} className="h-6 w-6 object-cover rounded-full " />
+      <img
+        src={userProfile}
+        alt={"image"}
+        className="h-6 w-6 object-cover rounded-full "
+      />
     );
   }
 
