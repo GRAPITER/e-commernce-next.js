@@ -4,7 +4,7 @@ import { LuUser2 } from "react-icons/lu";
 
 export default async function UserIcon() {
   const user = await currentUser();
-  console.log(user);
+
   const userProfile = user?.imageUrl;
 
   if (userProfile) {
