@@ -7,6 +7,8 @@ import { productSchema } from "./Schema";
 import { imageSchema } from "./Schema";
 import { bucketImageUpload, deleteImage } from "./supabase";
 import { revalidatePath } from "next/cache";
+import path from "path";
+import { tree } from "next/dist/build/templates/app-page";
 
 async function authUser() {
   const user = await currentUser();
@@ -164,7 +166,7 @@ export async function updateImageAction(prevState: any, formData: FormData) {
     const newImage = formData.get("image") as File;
     const oldIMage = formData.get("url") as string;
     const productId = formData.get("pId") as string;
-    console.log(newImage, productId);
+
     const validateImage = imageSchema.safeParse({ image: newImage });
     if (!validateImage.success) {
       const erros = validateImage.error.errors.map((err) => err.message);
@@ -187,4 +189,65 @@ export async function updateImageAction(prevState: any, formData: FormData) {
       ? { message: error.message }
       : { message: "there  is error" };
   }
+}
+
+export async function fetchFavoriteId({ productId }: { productId: string }) {
+  const user = await authUser();
+  const favorite = await db.favorite.findFirst({
+    where: {
+      productId: productId,
+      clerkId: user.id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return favorite?.id || null;
+}
+
+export async function buttonFavoriteToogle(prevState: any, formData: FormData) {
+  const user = await authUser();
+  try {
+    const productId = formData.get("pId") as string;
+    const favoriteId = formData.get("fId") as string | null;
+    const pathName = formData.get("pName") as string;
+
+    if (favoriteId) {
+      await db.favorite.delete({
+        where: {
+          id: favoriteId,
+        },
+      });
+    } else {
+      await db.favorite.create({
+        data: {
+          productId,
+          clerkId: user.id,
+        },
+      });
+    }
+    revalidatePath(pathName);
+    return {
+      message: favoriteId ? "removed from favorites" : "added to favorites",
+    };
+  } catch (error) {
+    return error instanceof Error
+      ? { message: error.message }
+      : { message: "there  is error" };
+  }
+}
+
+export async function fetchFavoriteproduct() {
+  const user = await authUser();
+  const products = db.favorite.findMany({
+    where: {
+      clerkId: user.id,
+    },
+    include: {
+      product: true,
+    },
+  });
+
+  return products;
 }

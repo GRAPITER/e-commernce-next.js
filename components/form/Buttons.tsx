@@ -4,7 +4,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { useFormStatus } from "react-dom";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import { FaRegEdit, FaRegTrashAlt } from "react-icons/fa";
+import { FaHeart, FaRegEdit, FaRegHeart, FaRegTrashAlt } from "react-icons/fa";
+import { SignInButton } from "@clerk/nextjs";
+import { auth } from "@clerk/nextjs/server";
 
 type ButtonType = {
   classname?: string;
@@ -59,6 +61,36 @@ export function IconButton({ actionType }: { actionType: iconButton }) {
       className="p-2 cursor-pointer"
     >
       {pending ? <ReloadIcon className="animate-spin" /> : renderIcon()}
+    </Button>
+  );
+}
+
+export function FavoriteSignInButton() {
+  return (
+    <SignInButton mode="modal">
+      <Button
+        asChild
+        size={"icon"}
+        variant={"outline"}
+        className="p-2 cursor-pointer"
+      >
+        <FaHeart />
+      </Button>
+    </SignInButton>
+  );
+}
+
+export function FavoriteButton({ favoriteId }: { favoriteId: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <Button className="p-2" size={"icon"} variant={"outline"}>
+      {pending ? (
+        <ReloadIcon className="animate-spin" />
+      ) : favoriteId ? (
+        <FaHeart />
+      ) : (
+        <FaRegHeart />
+      )}
     </Button>
   );
 }
