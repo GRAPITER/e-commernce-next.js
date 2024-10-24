@@ -2,13 +2,11 @@
 
 import { redirect } from "next/navigation";
 import db from "./db";
-import { currentUser } from "@clerk/nextjs/server";
-import { productSchema } from "./Schema";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { productSchema, reviewSchema } from "./Schema";
 import { imageSchema } from "./Schema";
 import { bucketImageUpload, deleteImage } from "./supabase";
 import { revalidatePath } from "next/cache";
-import path from "path";
-import { tree } from "next/dist/build/templates/app-page";
 
 async function authUser() {
   const user = await currentUser();
@@ -191,6 +189,8 @@ export async function updateImageAction(prevState: any, formData: FormData) {
   }
 }
 
+//add to fav technique action section
+
 export async function fetchFavoriteId({ productId }: { productId: string }) {
   const user = await authUser();
   const favorite = await db.favorite.findFirst({
@@ -250,4 +250,105 @@ export async function fetchFavoriteproduct() {
   });
 
   return products;
+}
+// curd with reviews technique action section
+
+export async function createReviewAction(prevState: any, formData: FormData) {
+  const user = auth();
+  if (!user.userId) {
+    redirect("/");
+  }
+  try {
+    const rawData = Object.fromEntries(formData);
+    console.log(rawData);
+    const validateReview = reviewSchema.safeParse(rawData);
+    if (!validateReview.success) {
+      const error = validateReview.error.errors.map((err) => err.message);
+      throw new Error(error.join(","));
+    }
+    await db.review.create({
+      data: {
+        ...validateReview.data,
+        clerkId: user.userId,
+      },
+    });
+    revalidatePath(`/products/${validateReview.data.productId}`);
+    return { message: "review created" };
+  } catch (error) {
+    console.error(error);
+    return error instanceof Error
+      ? { message: error.message }
+      : { message: "there is an Error" };
+  }
+}
+
+export async function fetchProductReview(productId: string) {
+  const review = await db.review.findMany({
+    where: {
+      productId: productId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return review;
+}
+
+export async function fetchRatingAverage(productId: string) {
+  const result = await db.review.groupBy({
+    by: ["productId"],
+    _avg: {
+      rating: true,
+    },
+    _count: {
+      rating: true,
+    },
+    where: {
+      productId,
+    },
+  });
+
+  return result || null;
+}
+
+export async function fetchUserReview() {
+  const user = await authUser();
+  const review = await db.review.findMany({
+    where: {
+      clerkId: user.id,
+    },
+    select: {
+      comment: true,
+      rating: true,
+      id: true,
+      product: {
+        select: {
+          image: true,
+          name: true,
+        },
+      },
+    },
+  });
+
+  return review;
+}
+
+export async function DeleteUserReview(prevState: any, formData: FormData) {
+  const reviewId = formData.get("rId") as string;
+  const user = await authUser();
+  try {
+    await db.review.delete({
+      where: {
+        id: reviewId,
+        clerkId: user.id,
+      },
+    });
+    revalidatePath("/reviews");
+    return { message: "review deleted" };
+  } catch (error) {
+    return error instanceof Error
+      ? { message: error.message }
+      : { message: "there is an Error" };
+  }
 }

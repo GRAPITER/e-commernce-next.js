@@ -30,3 +30,32 @@ export const imageSchema = z.object({
       return !file || file.type.startsWith("image/");
     }, `file type is incorrect`),
 });
+
+export const reviewSchema = z.object({
+  productId: z.string().refine((value) => value !== "", {
+    message: "productId can not be null",
+  }),
+  authorName: z.string().refine((value) => value !== "", {
+    message: "autherName can not be Null",
+  }),
+  authorImageUrl: z.string().refine((value) => value !== "", {
+    message: "auther image url can not be Null",
+  }),
+  rating: z.coerce
+    .number()
+    .int()
+    .min(1, {
+      message: "rating must be not smaller then 1",
+    })
+    .max(5, {
+      message: "rating must be not grater then 5",
+    }),
+  comment: z
+    .string()
+    .min(10, {
+      message: "description must be not smaller then 10",
+    })
+    .max(1000, {
+      message: "description must be not grater then 1000",
+    }),
+});

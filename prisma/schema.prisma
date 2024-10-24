@@ -20,6 +20,8 @@ model Product {
   updatedAt    DateTime   @updatedAt
   clerkId  String
   favorites favorite[]
+  reviews review[]
+
 } 
 
 model favorite {
@@ -29,5 +31,20 @@ model favorite {
   productId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+}
+
+model review {
+  
+  id        String   @id @default(uuid())
+  clerkId  String
+  rating Int
+  comment String
+  authorName String
+  authorImageUrl String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product Product @relation(fields: [productId] , references: [id])
+  productId String
 
 }

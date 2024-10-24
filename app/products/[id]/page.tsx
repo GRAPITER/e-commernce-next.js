@@ -1,4 +1,6 @@
 import FavoriteToggleButton from "@/components/products/FavoriteToggleButton";
+import ProductReview from "@/components/reviews/ProductReview";
+import SubmitReview from "@/components/reviews/SubmitReview";
 import AddToChart from "@/components/single-product/AddToChart";
 import BreadCramp from "@/components/single-product/BreadCramp";
 import Rating from "@/components/single-product/Rating";
@@ -37,6 +39,10 @@ export default async function page({ params }: { params: { id: string } }) {
           <p className="mt-6 leading-8 text-muted-foreground">{description}</p>
           <AddToChart productId={params.id} />
         </div>
+      </div>
+      <div>
+        <ProductReview productId={params.id} />
+        <SubmitReview productId={params.id} />
       </div>
     </section>
   );
