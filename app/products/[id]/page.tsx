@@ -4,12 +4,18 @@ import SubmitReview from "@/components/reviews/SubmitReview";
 import AddToChart from "@/components/single-product/AddToChart";
 import BreadCramp from "@/components/single-product/BreadCramp";
 import Rating from "@/components/single-product/Rating";
-import { FetchSingleProduct } from "@/utils/actions";
+import { FetchSingleProduct, findExistingReview } from "@/utils/actions";
+import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 
 export default async function page({ params }: { params: { id: string } }) {
   const product = await FetchSingleProduct(params.id);
   const { name, price, image, description, company } = product;
+  const { userId } = auth();
+  const reviewDoesNotExist =
+    //his part checks whether a review does not exist for the given product and user. If the function findExistingReview returns null or undefined (indicating no review exists), the condition inside the !() will be true
+    userId && !(await findExistingReview(product.id, userId));
+  console.log("reviewDoesNot Exist", reviewDoesNotExist);
   return (
     <section>
       <BreadCramp name={product.name} />
@@ -42,7 +48,7 @@ export default async function page({ params }: { params: { id: string } }) {
       </div>
       <div>
         <ProductReview productId={params.id} />
-        <SubmitReview productId={params.id} />
+        {reviewDoesNotExist && <SubmitReview productId={params.id} />}
       </div>
     </section>
   );

@@ -254,10 +254,8 @@ export async function fetchFavoriteproduct() {
 // curd with reviews technique action section
 
 export async function createReviewAction(prevState: any, formData: FormData) {
-  const user = auth();
-  if (!user.userId) {
-    redirect("/");
-  }
+  const user = await authUser();
+
   try {
     const rawData = Object.fromEntries(formData);
     console.log(rawData);
@@ -269,7 +267,7 @@ export async function createReviewAction(prevState: any, formData: FormData) {
     await db.review.create({
       data: {
         ...validateReview.data,
-        clerkId: user.userId,
+        clerkId: user.id,
       },
     });
     revalidatePath(`/products/${validateReview.data.productId}`);
@@ -351,4 +349,13 @@ export async function DeleteUserReview(prevState: any, formData: FormData) {
       ? { message: error.message }
       : { message: "there is an Error" };
   }
+}
+
+export async function findExistingReview(productId: string, userId: string) {
+  return await db.review.findFirst({
+    where: {
+      clerkId: userId,
+      productId,
+    },
+  });
 }
