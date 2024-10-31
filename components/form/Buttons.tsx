@@ -6,7 +6,6 @@ import { useFormStatus } from "react-dom";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { FaHeart, FaRegEdit, FaRegHeart, FaRegTrashAlt } from "react-icons/fa";
 import { SignInButton } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server";
 
 type ButtonType = {
   classname?: string;
@@ -92,5 +91,16 @@ export function FavoriteButton({ favoriteId }: { favoriteId: boolean }) {
         <FaRegHeart />
       )}
     </Button>
+  );
+}
+
+export function CartSignInButton() {
+  return (
+    <SignInButton mode="modal">
+      <Button size={"lg"} className="mt-8 capitalize">
+        {" "}
+        sign In
+      </Button>
+    </SignInButton>
   );
 }

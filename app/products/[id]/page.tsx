@@ -15,7 +15,7 @@ export default async function page({ params }: { params: { id: string } }) {
   const reviewDoesNotExist =
     //his part checks whether a review does not exist for the given product and user. If the function findExistingReview returns null or undefined (indicating no review exists), the condition inside the !() will be true
     userId && !(await findExistingReview(product.id, userId));
-  console.log("reviewDoesNot Exist", reviewDoesNotExist);
+
   return (
     <section>
       <BreadCramp name={product.name} />

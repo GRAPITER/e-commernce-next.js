@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { LuShoppingCart } from "react-icons/lu";
 import { Button } from "../ui/button";
+import { fetchCartItems } from "@/utils/actions";
 
-export default function CartButton() {
-  const numItemsCenter = 9;
+export default async function CartButton() {
+  const cart = await fetchCartItems();
+  const numItemsCenter = cart;
   return (
     <Button
       asChild

@@ -7,6 +7,7 @@ import { productSchema, reviewSchema } from "./Schema";
 import { imageSchema } from "./Schema";
 import { bucketImageUpload, deleteImage } from "./supabase";
 import { revalidatePath } from "next/cache";
+import { Cart } from "@prisma/client";
 
 async function authUser() {
   const user = await currentUser();
@@ -358,4 +359,279 @@ export async function findExistingReview(productId: string, userId: string) {
       productId,
     },
   });
+}
+
+//queries related to cartItems
+
+//it cheak how many item in cart
+// export async function fetchCartItems() {
+//   const user = auth();
+//   const cart = await db.cart.findFirst({
+//     where: {
+//       clerkId: user?.userId ?? "",
+//     },
+//     select: {
+//       numItemsInCart: true,
+//     },
+//   });
+
+//   return cart?.numItemsInCart || 0;
+// }
+
+// //1 helper funtion to fech the product accouding to productId
+// async function fetchProduct(productId: string) {
+//   const product = await db.product.findUnique({
+//     where: {
+//       id: productId,
+//     },
+//   });
+//   if (!product) throw new Error("there is no product");
+
+//   return product;
+// }
+
+// //2 helper function to fetch or create cart
+
+// async function fetchOrCreateCart(userId: string, isError: boolean = false) {
+//   let cart = await db.cart.findFirst({
+//     where: {
+//       clerkId: userId,
+//     },
+//     include: {
+//       cartItems: {
+//         include: {
+//           product: true,
+//         },
+//       },
+//     },
+//   });
+
+//   if (!cart && isError) throw new Error("Cart Not Found");
+
+//   if (!cart) {
+//     cart = await db.cart.create({
+//       data: {
+//         clerkId: userId,
+//       },
+//       include: {
+//         cartItems: {
+//           include: {
+//             product: true,
+//           },
+//         },
+//       },
+//     });
+//   }
+//   return cart;
+// }
+
+// //3 helper function to update or create cartItems
+
+// async function updateOrCreateCartItems({
+//   productId,
+//   amount,
+//   cartId,
+// }: {
+//   productId: string;
+//   amount: number;
+//   cartId: string;
+// }) {
+//   let cartItem = await db.cartItem.findFirst({
+//     where: {
+//       productId: productId,
+//       cartId: cartId,
+//     },
+//   });
+
+//   if (cartItem) {
+//     cartItem = await db.cartItem.update({
+//       where: {
+//         id: cartItem.id,
+//       },
+//       data: {
+//         amount: cartItem.amount + amount,
+//       },
+//     });
+//   } else {
+//     cartItem = await db.cartItem.create({
+//       data: {
+//         productId,
+//         amount,
+//         cartId,
+//       },
+//     });
+//   }
+// }
+
+// //4 helper to update cart
+// export const updateCart = async (cart: Cart) => {
+//   const cartItems = await db.cartItem.findMany({
+//     where: {
+//       cartId: cart.id,
+//     },
+//     include: {
+//       product: true, // Include the related product
+//     },
+//   });
+
+//   let numItemsInCart = 0;
+//   let cartTotal = 0;
+
+//   for (const item of cartItems) {
+//     numItemsInCart += item.amount;
+//     cartTotal += item.amount * item.product.price;
+//   }
+//   const tax = cart.taxRate * cartTotal;
+//   const shipping = cartTotal ? cart.shipping : 0;
+//   const orderTotal = cartTotal + tax + shipping;
+
+//   await db.cart.update({
+//     where: {
+//       id: cart.id,
+//     },
+//     data: {
+//       numItemsInCart,
+//       cartTotal,
+//       tax,
+//       orderTotal,
+//     },
+//   });
+// };
+
+// //this action is use to add the product in cart
+// export async function addToCartActions(prevState: any, formData: FormData) {
+//   const user = await authUser();
+//   if (!user.id) redirect("/");
+//   try {
+//     const productId = formData.get("pId") as string;
+//     const amount = Number(formData.get("amount"));
+//     await fetchProduct(productId);
+//     const cart = await fetchOrCreateCart(user.id);
+//     await updateOrCreateCartItems({ productId, amount, cartId: cart.id });
+//     await updateCart(cart);
+//     return { message: "item added in cart" };
+//   } catch (error) {
+//     return error instanceof Error
+//       ? { message: error.message }
+//       : { message: "there is Error" };
+//   }
+// }
+
+//1 this going to cheak how many items in my cart
+export async function fetchCartItems() {
+  const user = auth();
+
+  const cart = await db.cart.findFirst({
+    where: {
+      clerkId: user?.userId ?? "",
+    },
+    select: {
+      numItemsInCart: true,
+    },
+  });
+
+  return cart?.numItemsInCart || 0;
+}
+
+//1 helper function to create and update cart
+async function createOrUpdateCart(user: string) {
+  let cart = await db.cart.findFirst({
+    where: {
+      clerkId: user,
+    },
+  });
+  if (!cart) {
+    cart = await db.cart.create({
+      data: {
+        clerkId: user,
+      },
+    });
+  }
+
+  return cart;
+}
+//2 helper function to create and update cartItems
+async function createOrUpdateCartItems(
+  amount: number,
+  productId: string,
+  cart: string
+) {
+  let cartItem = await db.cartItem.findFirst({
+    where: {
+      productId: productId,
+      cartId: cart,
+    },
+  });
+  if (!cartItem) {
+    cartItem = await db.cartItem.create({
+      data: {
+        amount: amount,
+        productId: productId,
+        cartId: cart,
+      },
+    });
+  } else {
+    cartItem = await db.cartItem.update({
+      where: {
+        id: cartItem.id,
+      },
+      data: {
+        amount: cartItem.amount + amount,
+      },
+    });
+  }
+}
+
+//3 now update cart value
+async function updateCart(cart: Cart) {
+  const cartItems = await db.cartItem.findMany({
+    where: {
+      cartId: cart.id,
+    },
+    include: {
+      product: true,
+    },
+  });
+
+  let numItemsInCart = 0;
+  let cartTotal = 0;
+
+  numItemsInCart = cartItems.reduce((sum, item) => sum + item.amount, 0);
+  cartTotal = cartItems.reduce(
+    (sum, item) => sum + item.product.price * item.amount,
+    0
+  );
+
+  const tax = cart.taxRate * cartTotal;
+  const shipping = cartTotal ? cart.shipping : 0;
+  const orderTotal = cartTotal + tax + shipping;
+  await db.cart.update({
+    where: {
+      id: cart.id,
+    },
+    data: {
+      numItemsInCart,
+      cartTotal,
+      tax,
+      orderTotal,
+    },
+  });
+}
+
+//main action which is going to add in cart
+export async function addToCartActions(prevState: any, formdata: FormData) {
+  const user = auth();
+  if (!user.userId) return redirect("/");
+  try {
+    const productId = formdata.get("pId") as string;
+    const amount = Number(formdata.get("amount"));
+    const cart = await createOrUpdateCart(user.userId);
+    await createOrUpdateCartItems(amount, productId, cart.id);
+    await updateCart(cart);
+  } catch (error) {
+    return error instanceof Error
+      ? { message: error.message }
+      : { message: "there is Error" };
+  }
+  redirect("/cart");
 }
