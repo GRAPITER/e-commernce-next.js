@@ -534,16 +534,30 @@ export async function fetchCartItems() {
 }
 
 //1 helper function to create and update cart
-async function createOrUpdateCart(user: string) {
+export async function createOrUpdateCart(user: string) {
   let cart = await db.cart.findFirst({
     where: {
       clerkId: user,
+    },
+    include: {
+      cartItems: {
+        include: {
+          product: true,
+        },
+      },
     },
   });
   if (!cart) {
     cart = await db.cart.create({
       data: {
         clerkId: user,
+      },
+      include: {
+        cartItems: {
+          include: {
+            product: true,
+          },
+        },
       },
     });
   }
@@ -583,7 +597,7 @@ async function createOrUpdateCartItems(
 }
 
 //3 now update cart value
-async function updateCart(cart: Cart) {
+export async function updateCart(cart: Cart) {
   const cartItems = await db.cartItem.findMany({
     where: {
       cartId: cart.id,
@@ -634,4 +648,57 @@ export async function addToCartActions(prevState: any, formdata: FormData) {
       : { message: "there is Error" };
   }
   redirect("/cart");
+}
+
+export async function CreateOrderAction() {
+  return { message: "order created" };
+}
+
+export async function DeleteCartItem(prevState: any, formData: FormData) {
+  const user = await authUser();
+  try {
+    const pId = formData.get("pId") as string;
+    const cart = await createOrUpdateCart(user.id);
+    await db.cartItem.delete({
+      where: {
+        id: pId,
+        cartId: cart.id,
+      },
+    });
+
+    await updateCart(cart);
+    revalidatePath("/cart");
+    return { message: "deleted cart item" };
+  } catch (error) {
+    return error instanceof Error
+      ? { message: error.message }
+      : { message: "there is an error" };
+  }
+}
+
+export async function editCartItem({
+  amount,
+  cartItemId,
+}: {
+  amount: number;
+  cartItemId: string;
+}) {
+  const user = await authUser();
+  try {
+    const cart = await createOrUpdateCart(user.id);
+    const updateCartItem = await db.cartItem.update({
+      where: {
+        id: cartItemId,
+        cartId: cart.id,
+      },
+      data: {
+        amount,
+      },
+    });
+    await updateCart(cart);
+    revalidatePath("/cart");
+    return updateCartItem;
+  } catch (error) {
+    return error instanceof Error ? error : new Error("there is error");
+  }
 }
