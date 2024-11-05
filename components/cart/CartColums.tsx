@@ -63,7 +63,7 @@ export function ColumnThird({ id, amount }: { id: string; amount: number }) {
     <div className="flex flex-col justify-between">
       <div className="flex mb-4 w-full justify-between items-center">
         <button
-          className="h-5 w-5 rounded-full bg-primary flex justify-center items-center disabled:bg-blue-400"
+          className="h-5 w-5 p-0 rounded-full bg-primary flex justify-center items-center disabled:bg-blue-400"
           onClick={() => handleAmountChange(quantity + 1)}
           disabled={isLoading}
         >

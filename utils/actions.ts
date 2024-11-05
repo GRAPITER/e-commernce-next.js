@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import db from "./db";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser, EmailAddress } from "@clerk/nextjs/server";
 import { productSchema, reviewSchema } from "./Schema";
 import { imageSchema } from "./Schema";
 import { bucketImageUpload, deleteImage } from "./supabase";
@@ -630,6 +630,8 @@ export async function updateCart(cart: Cart) {
       orderTotal,
     },
   });
+
+  return cartItems;
 }
 
 //main action which is going to add in cart
@@ -651,10 +653,34 @@ export async function addToCartActions(prevState: any, formdata: FormData) {
 }
 
 export async function CreateOrderAction() {
-  return { message: "order created" };
+  const user = await authUser();
+  try {
+    const cart = await createOrUpdateCart(user.id);
+    await db.order.create({
+      data: {
+        clerkId: user.id,
+        products: cart.numItemsInCart,
+        orderTotal: cart.orderTotal,
+        tax: cart.tax,
+        shipping: cart.shipping,
+        email: user.emailAddresses[0].emailAddress,
+      },
+    });
+
+    await db.cart.delete({
+      where: {
+        id: cart.id,
+      },
+    });
+  } catch (error) {
+    return error instanceof Error
+      ? { message: error.message }
+      : { message: "there is an error" };
+  }
+  redirect("/orders");
 }
 
-export async function DeleteCartItem(prevState: any, formData: FormData) {
+export async function DeleteCartItem(prevState: unknown, formData: FormData) {
   const user = await authUser();
   try {
     const pId = formData.get("pId") as string;
@@ -701,4 +727,34 @@ export async function editCartItem({
   } catch (error) {
     return error instanceof Error ? error : new Error("there is error");
   }
+}
+
+//orders page query
+
+export async function fetchUserOrders() {
+  const user = await authUser();
+  const orders = db.order.findMany({
+    where: {
+      clerkId: user.id,
+      isPaid: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return orders;
+}
+
+export async function fetchAdminOrders() {
+  const orders = db.order.findMany({
+    where: {
+      isPaid: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return orders;
 }

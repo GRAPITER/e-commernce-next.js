@@ -2,7 +2,7 @@ import CartItemsList from "@/components/cart/CartItemsList";
 import CartTotals from "@/components/cart/CartTotals";
 import SectionTitle from "@/components/global/SectionTitle";
 
-import { createOrUpdateCart } from "@/utils/actions";
+import { createOrUpdateCart, updateCart } from "@/utils/actions";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
@@ -11,6 +11,7 @@ export default async function page() {
   if (!user.userId) redirect("/");
 
   const cart = await createOrUpdateCart(user.userId);
+  await updateCart(cart);
 
   if (cart.numItemsInCart === 0) return <SectionTitle text="cart is empty " />;
 
