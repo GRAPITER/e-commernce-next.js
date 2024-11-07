@@ -104,7 +104,12 @@ export async function fetchAdminProducts() {
   return product;
 }
 
-export async function DeleteProduct(prevState: any, formData: FormData) {
+export async function DeleteProduct(
+  prevState: unknown,
+  formData: FormData
+): Promise<{
+  message: string;
+}> {
   const productId = formData.get("id") as string;
   try {
     const product = await db.product.delete({
@@ -112,7 +117,7 @@ export async function DeleteProduct(prevState: any, formData: FormData) {
         id: productId,
       },
     });
-    deleteImage(product.image);
+    await deleteImage(product.image);
     revalidatePath("admin/products");
     return { message: "product Deleted" };
   } catch (error) {
