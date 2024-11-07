@@ -5,11 +5,7 @@ import FormInput from "@/components/form/FormInput";
 import ImageInputContainer from "@/components/form/ImageInputContainer";
 import PriceInput from "@/components/form/PriceInput";
 import TextAreaInput from "@/components/form/TextAreaInput";
-import {
-  FetchAdminProduct,
-  ProductUpdated,
-  updateImageAction,
-} from "@/utils/actions";
+import { FetchAdminProduct, ProductUpdated } from "@/utils/actions";
 
 export default async function EditProductPage({
   params,
