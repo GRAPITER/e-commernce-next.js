@@ -55,7 +55,7 @@ export async function FetchSingleProduct(productId: string) {
 }
 
 export async function createProduct(
-  prevState: any,
+  prevState: unknown,
   formData: FormData
 ): Promise<{ message: string }> {
   const user = await authUser();
@@ -138,7 +138,7 @@ export async function FetchAdminProduct(productId: string) {
   return product;
 }
 
-export async function ProductUpdated(prevState: any, formData: FormData) {
+export async function ProductUpdated(prevState: unknown, formData: FormData) {
   try {
     const productId = formData.get("ids") as string;
     const rawData = Object.fromEntries(formData);
@@ -165,7 +165,10 @@ export async function ProductUpdated(prevState: any, formData: FormData) {
   }
 }
 
-export async function updateImageAction(prevState: any, formData: FormData) {
+export async function updateImageAction(
+  prevState: unknown,
+  formData: FormData
+) {
   try {
     const newImage = formData.get("image") as File;
     const oldIMage = formData.get("url") as string;
@@ -212,7 +215,10 @@ export async function fetchFavoriteId({ productId }: { productId: string }) {
   return favorite?.id || null;
 }
 
-export async function buttonFavoriteToogle(prevState: any, formData: FormData) {
+export async function buttonFavoriteToogle(
+  prevState: unknown,
+  formData: FormData
+) {
   const user = await authUser();
   try {
     const productId = formData.get("pId") as string;
@@ -259,7 +265,10 @@ export async function fetchFavoriteproduct() {
 }
 // curd with reviews technique action section
 
-export async function createReviewAction(prevState: any, formData: FormData) {
+export async function createReviewAction(
+  prevState: unknown,
+  formData: FormData
+) {
   const user = await authUser();
 
   try {
@@ -338,7 +347,7 @@ export async function fetchUserReview() {
   return review;
 }
 
-export async function DeleteUserReview(prevState: any, formData: FormData) {
+export async function DeleteUserReview(prevState: unknown, formData: FormData) {
   const reviewId = formData.get("rId") as string;
   const user = await authUser();
   try {
@@ -504,7 +513,7 @@ export async function findExistingReview(productId: string, userId: string) {
 // };
 
 // //this action is use to add the product in cart
-// export async function addToCartActions(prevState: any, formData: FormData) {
+// export async function addToCartActions(prevState: unknown, formData: FormData) {
 //   const user = await authUser();
 //   if (!user.id) redirect("/");
 //   try {
@@ -640,7 +649,7 @@ export async function updateCart(cart: Cart) {
 }
 
 //main action which is going to add in cart
-export async function addToCartActions(prevState: any, formdata: FormData) {
+export async function addToCartActions(prevState: unknown, formdata: FormData) {
   const user = auth();
   if (!user.userId) return redirect("/");
   try {

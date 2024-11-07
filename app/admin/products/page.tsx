@@ -56,7 +56,7 @@ export default async function AdminProducts() {
   );
 }
 
-export function DeleteProducts({ productId }: { productId: string }) {
+function DeleteProducts({ productId }: { productId: string }) {
   return (
     <FormContainer action={DeleteProduct}>
       <input type="hidden" name="id" value={productId} />
