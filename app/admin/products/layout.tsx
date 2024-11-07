@@ -1,5 +1,5 @@
 import React from "react";
-import SideBar from "./SideBar";
+import SideBar from "../SideBar";
 import { Separator } from "@/components/ui/separator";
 
 export default function DashboardLayout({
