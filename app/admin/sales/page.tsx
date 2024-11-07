@@ -1,4 +1,3 @@
-import SectionTitle from "@/components/global/SectionTitle";
 import {
   Table,
   TableBody,
